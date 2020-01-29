@@ -31,7 +31,7 @@ import sys
 import csv
 from time import process_time 
 
-def loadCSVFile (file, lst, sep=";"):
+def loadCSVFile (file, file2, lst, sep=";"):
     """
     Carga un archivo csv a una lista
     """
@@ -41,6 +41,10 @@ def loadCSVFile (file, lst, sep=";"):
     dialect = csv.excel()
     dialect.delimiter=sep
     with open(file, encoding="utf-8") as csvfile:
+        spamreader = csv.DictReader(csvfile, dialect=dialect)
+        for row in spamreader: 
+            lst.append(row)
+    with open(file2, encoding="utf-8") as csvfile:
         spamreader = csv.DictReader(csvfile, dialect=dialect)
         for row in spamreader: 
             lst.append(row)
@@ -79,7 +83,25 @@ def countElementsByCriteria(criteria, column, lst):
     """
     Retorna la cantidad de elementos que cumplen con un criterio para una columna dada
     """
-    return 0
+    num_pel=0
+    contador=2001
+    identif= 0
+    t1_start = process_time() #tiempo inicial
+    while contador <4000 and contador >2000:
+        if lst[contador]['director_name'] == criteria:
+            identif= lst[contador]['id']
+            contador2=0
+            estatus= False
+            while contador2 < 2000 and estatus == False:
+                if lst[contador2]['id'] == identif:
+                    if float(lst[contador2]['vote_average']) >= 6:
+                        num_pel +=1
+                        estatus= True
+                contador2 +=1
+        contador+=1
+    t1_stop = process_time() #tiempo final
+    print("Tiempo de ejecución ",t1_stop-t1_start," segundos")
+    return num_pel
 
 
 def main():
@@ -89,8 +111,9 @@ def main():
         inputs =input('Seleccione una opción para continuar\n') #leer opción ingresada
         if len(inputs)>0:
             if int(inputs[0])==1: #opcion 1
-                loadCSVFile("Data/test.csv", lista) #llamar funcion cargar datos
+                loadCSVFile("Data/SmallMoviesDetailsCleaned.csv", "Data/MoviesCastingRaw-small.csv", lista) #llamar funcion cargar datos
                 print("Datos cargados, "+str(len(lista))+" elementos cargados")
+                #print(lista)
             elif int(inputs[0])==2: #opcion 2
                 if len(lista)==0: #obtener la longitud de la lista
                     print("La lista esta vacía")    
@@ -100,9 +123,9 @@ def main():
                 counter=countElementsFilteredByColumn(criteria, "nombre", lista) #filtrar una columna por criterio  
                 print("Coinciden ",counter," elementos con el crtierio: ", criteria  )
             elif int(inputs[0])==4: #opcion 4
-                criteria =input('Ingrese el criterio de búsqueda\n')
+                criteria =input('Ingrese el nombre del director\n')
                 counter=countElementsByCriteria(criteria,0,lista)
-                print("Coinciden ",counter," elementos con el crtierio: '", criteria ,"' (en construcción ...)")
+                print("Coinciden ",counter," elementos con el crtierio: '", criteria ,)
             elif int(inputs[0])==0: #opcion 0, salir
                 sys.exit(0)
 
